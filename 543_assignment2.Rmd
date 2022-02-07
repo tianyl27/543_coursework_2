@@ -1,0 +1,131 @@
+---
+title: "543 assignment 2"
+output:
+  html_document:
+    df_print: paged
+---
+
+# Data Source
+This assignment would use the same data as the assignment 1.
+![img](https://www.happierway.org/wp-content/uploads/2021/03/Capture-1.png)
+
+The data source is the same as the data in the first assignment.
+
+```{r getData}
+link = 'https://raw.githubusercontent.com/tianyl27/543_coursework_1/main/WHR2021.csv'
+
+# getting the data TABLE from the file:
+WHRData2021 <- read.csv(file=url(link))
+```
+
+#### 1. [Practice] Picture of 2020 Covid Death per 1000000 population
+
+#### 1.1 get the data
+```{r}
+# get COVID death data
+CovidDeath = cbind(WHRData2021[,1:2],WHRData2021[,23])
+colnames(CovidDeath) = c('Country', 'Region', 'DeathRate')
+
+# delete rows with na values: None
+CovidDeath = CovidDeath[complete.cases(CovidDeath),]
+
+# order by death rate in 2020 and show the first 20 countries
+CovidDeath=CovidDeath[order(-CovidDeath$DeathRate),]
+head(CovidDeath,20)
+```
+#### 1.2 prepare the title and caption text for the picture
+```{r}
+# title and caption text
+TitleText = "Average Covid Death per 100000 population for Each Region"
+CaptionText = "Source: https://worldhappiness.report/ed/2021/"
+```
+
+#### 1.3 plot the picture
+```{r}
+library(ggplot2)
+# order by the mean death rate of each region
+# set the range of y axis
+baseMEANs = ggplot(CovidDeath, aes(x=reorder(Region,DeathRate, mean),
+                             y=DeathRate), ylim=c(0,80)) + theme_classic() + xlab("Region") + ylab("Covid Death per 1M population")
+
+# add error bar
+point=baseMEANs + geom_point(stat="summary") + geom_errorbar(stat="summary") + coord_flip()
+
+# show the graph
+point
+```
+```{r}
+# add the pre-aggregated data in the graph, using dots
+jitterMEANs= baseMEANs + geom_jitter(colour="blue",
+                             alpha=0.2 #transparency
+                             )
+jitterMEANs=jitterMEANs + geom_point(stat="summary") +
+             geom_errorbar(stat="summary") + coord_flip()
+# scale_y_continuous(breaks = c(0, 10, 25, 50, 75))
+jitterMEANs
+```
+
+#### 2. [Practice] Picture of Gini coefficient and median age  
+
+The Gini coefficient measures the inequality among values of a frequency distribution (for example, levels of income). A Gini coefficient of zero expresses perfect equality, where all values are the same (e.g. where everyone has the same income). A Gini coefficient of one (or 100%) expresses maximal inequality among values  
+
+#### 2.1 data
+The two variables are available in the original csv file. The Gini coefficient is coded as "Gini.coefficient.of.income" and the median age is coded as "Median.age".  
+
+Get to know the distribution of Gini coefficient:
+```{r}
+summary(WHRData2021$Gini.coefficient.of.income)
+```
+For OECD countries, in the late 20th century, considering the effect of taxes and transfer payments, the income Gini coefficient ranged between 0.24 and 0.49.  
+
+#### 2.2 plot the two variables
+```{r}
+base = ggplot(WHRData2021, aes(x=Median.age,y=Gini.coefficient.of.income)) + theme_classic() + xlab("Median age") + ylab("Gini coefficient")
+
+# set the range of both x and y axis
+plot1= base +  geom_point(aes(colour=factor(Regional.indicator))) + xlim(c(10,50))+ ylim(c(20,70))
+plot1
+
+# add the fitted line
+plot2 = plot1 + stat_smooth(method='lm', se=F) + theme(legend.title=element_blank())
+# plot2 = plot1 + stat_smooth()
+plot2
+```
+
+```{r}
+densePlot = plot2 + facet_wrap(~Regional.indicator,ncol = 1, strip.position = 'right') + theme(legend.position="none") 
+densePlot = densePlot + theme(panel.spacing.y = unit(0.1, "lines"),
+                              axis.title.y = element_blank(),
+                              axis.text.y = element_blank(),
+                              axis.line.y = element_blank(),
+                              axis.ticks.y = element_blank(),
+                              strip.background = element_rect(colour="white"),
+                              strip.text.y = element_text(size=10,
+                                    color="black",
+                                    angle = 0))
+# densePlot
+
+```
+
+#### 3. [Practice] Picture of GDP per capital and Life Expectancy
+A great deal of research has been performed on whether wealth can, in fact, increase happiness. Among the many papers, projects, surveys, and proposals are hypotheses showing varying levels of correlation between per capita GDP and quality of life. These also include several works by recent Nobel laureate, Sir Angus Deaton, a professor Princeton University. 
+
+#### 3.1 data
+The plot will use the two related variables from the data source.  
+
+```{r}
+library(ggrepel)
+
+```
+
+
+
+#### 3.2 plot the two variables
+
+```{r}
+base3 = ggplot(WHRData2021, aes(x=Logged.GDP.per.capita, y=Healthy.life.expectancy, size=Population.2020, color=Regional.indicator)) + geom_point(alpha=0.5)
+base3 + scale_size(range=c(.1,24), name="Population in 2020") + geom_text_repel(label=WHRData2021$Country.name, size=2)
+
+```
+
+
