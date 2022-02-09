@@ -12,7 +12,7 @@ This assignment would use the same data as the assignment 1.
 The data source is the same as the data in the first assignment.
 
 ```{r getData}
-link = 'https://raw.githubusercontent.com/tianyl27/543_coursework_1/main/WHR2021.csv'
+link = 'https://raw.githubusercontent.com/tianyl27/543_coursework_2/main/WHR2021.csv'
 
 # getting the data TABLE from the file:
 WHRData2021 <- read.csv(file=url(link))
@@ -23,8 +23,8 @@ WHRData2021 <- read.csv(file=url(link))
 #### 1.1 get the data
 ```{r}
 # get COVID death data
-CovidDeath = cbind(WHRData2021[,1:2],WHRData2021[,23])
-colnames(CovidDeath) = c('Country', 'Region', 'DeathRate')
+CovidDeath = cbind(WHRData2021[,1:3],WHRData2021[,23])
+colnames(CovidDeath) = c('Country', 'Region','Continent', 'DeathRate')
 
 # delete rows with na values: None
 CovidDeath = CovidDeath[complete.cases(CovidDeath),]
@@ -36,7 +36,7 @@ head(CovidDeath,20)
 #### 1.2 prepare the title and caption text for the picture
 ```{r}
 # title and caption text
-TitleText = "Average Covid Death per 100000 population for Each Region"
+TitleText = "Covid Death Rate in 2020 by Region"
 CaptionText = "Source: https://worldhappiness.report/ed/2021/"
 ```
 
@@ -46,7 +46,7 @@ library(ggplot2)
 # order by the mean death rate of each region
 # set the range of y axis
 baseMEANs = ggplot(CovidDeath, aes(x=reorder(Region,DeathRate, mean),
-                             y=DeathRate), ylim=c(0,80)) + theme_classic() + xlab("Region") + ylab("Covid Death per 1M population")
+                             y=DeathRate), ylim=c(0,80)) + theme_classic() + xlab("Region") + ylab("Covid Death per 100000 population")
 
 # add error bar
 point=baseMEANs + geom_point(stat="summary") + geom_errorbar(stat="summary") + coord_flip()
@@ -62,8 +62,15 @@ jitterMEANs= baseMEANs + geom_jitter(colour="blue",
 jitterMEANs=jitterMEANs + geom_point(stat="summary") +
              geom_errorbar(stat="summary") + coord_flip()
 # scale_y_continuous(breaks = c(0, 10, 25, 50, 75))
+jitterMEANs=jitterMEANs + labs(title=TitleText, caption=CaptionText) + theme(plot.title = element_text(hjust = 0), plot.caption = element_text(hjust = -1))
 jitterMEANs
 ```
+Several Findings:
+1) Europe was the most affected areas by the COVID epidemic in terms of death rate in 2020 while Asia was the least affected areas.
+2) North America and ANZ has the largest in-group variance, partly due to the small size of countries.
+Although Europe was hit by the epidemic badly, countries in Europe still ranked high in the happiness ranking.  
+
+
 
 #### 2. [Practice] Picture of Gini coefficient and median age  
 
@@ -83,18 +90,26 @@ For OECD countries, in the late 20th century, considering the effect of taxes an
 base = ggplot(WHRData2021, aes(x=Median.age,y=Gini.coefficient.of.income)) + theme_classic() + xlab("Median age") + ylab("Gini coefficient")
 
 # set the range of both x and y axis
-plot1= base +  geom_point(aes(colour=factor(Regional.indicator))) + xlim(c(10,50))+ ylim(c(20,70))
+plot1= base +  geom_point(aes(colour=factor(Continent))) + xlim(c(10,50))+ ylim(c(20,70))
 plot1
 
 # add the fitted line
-plot2 = plot1 + stat_smooth(method='lm', se=F) + theme(legend.title=element_blank())
-# plot2 = plot1 + stat_smooth()
+plot2 = plot1 + stat_smooth(method='lm') + theme(legend.title=element_blank())
+# plot2 = plot1 + stat_smooth(method='lm', se=F) + theme(legend.title=element_blank())
 plot2
+
+# non-linear
+plot3 = plot1 + geom_smooth() + theme(legend.title=element_blank())
+# plot3
+
+
 ```
 
+
 ```{r}
-densePlot = plot2 + facet_wrap(~Regional.indicator,ncol = 1, strip.position = 'right') + theme(legend.position="none") 
-densePlot = densePlot + theme(panel.spacing.y = unit(0.1, "lines"),
+densePlot1 = plot2 + facet_wrap(~Continent,ncol = 1, strip.position = 'top') + theme(legend.position="none") 
+
+densePlot1 = densePlot1 + theme(panel.spacing.y = unit(0.1, "lines"),
                               axis.title.y = element_blank(),
                               axis.text.y = element_blank(),
                               axis.line.y = element_blank(),
@@ -103,9 +118,28 @@ densePlot = densePlot + theme(panel.spacing.y = unit(0.1, "lines"),
                               strip.text.y = element_text(size=10,
                                     color="black",
                                     angle = 0))
-# densePlot
+densePlot1
+
+# try col = 4
+densePlot2 = plot2 + facet_wrap(~Continent,ncol = 4, strip.position = 'top') + theme(legend.position="none") 
+densePlot2 = densePlot2 + theme(panel.spacing.y = unit(0.1, "lines"),
+                              #axis.title.y = element_blank(),
+                              #axis.text.y = element_blank(),
+                              #axis.line.y = element_blank(),
+                              #axis.ticks.y = element_blank(),
+                              strip.background = element_rect(colour="white"),
+                              strip.text.y = element_text(size=10,
+                                    color="black",
+                                    angle = 0))
+densePlot2
 
 ```
+Several findings:
+1) The inverse relationship between Median age and Gini Coefficient holds true in most cases.
+2) Europe has the highest median age, thus the smallest Gini coefficient among the four major groups.
+3) Asia has the largest in-group variance in Median age.  
+
+
 
 #### 3. [Practice] Picture of GDP per capital and Life Expectancy
 A great deal of research has been performed on whether wealth can, in fact, increase happiness. Among the many papers, projects, surveys, and proposals are hypotheses showing varying levels of correlation between per capita GDP and quality of life. These also include several works by recent Nobel laureate, Sir Angus Deaton, a professor Princeton University. 
