@@ -36,7 +36,7 @@ head(CovidDeath,20)
 #### 1.2 prepare the title and caption text for the picture
 ```{r}
 # title and caption text
-TitleText = "Covid Death Rate in 2020 by Region"
+TitleText = "2020 Covid Death Rate"
 CaptionText = "Source: https://worldhappiness.report/ed/2021/"
 ```
 
@@ -64,6 +64,7 @@ jitterMEANs=jitterMEANs + geom_point(stat="summary") +
 # scale_y_continuous(breaks = c(0, 10, 25, 50, 75))
 jitterMEANs=jitterMEANs + labs(title=TitleText, caption=CaptionText) + theme(plot.title = element_text(hjust = 0), plot.caption = element_text(hjust = -1))
 jitterMEANs
+saveRDS(jitterMEANs,file = 'CovidDeath.rds')
 ```
 Several Findings:
 1) Europe was the most affected areas by the COVID epidemic in terms of death rate in 2020 while Asia was the least affected areas.
@@ -102,6 +103,7 @@ plot2
 plot3 = plot1 + geom_smooth() + theme(legend.title=element_blank())
 # plot3
 
+saveRDS(plot3 ,file = 'GiniAndAge.rds')
 
 ```
 
